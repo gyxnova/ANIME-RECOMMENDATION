@@ -17,3 +17,5 @@ Sphinx
 dvc-gdrive
 fastapi
 uvicorn
+thefuzz
+python-Levenshtein
