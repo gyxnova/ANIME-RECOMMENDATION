@@ -26,6 +26,15 @@ def clean_anime(df):
     log.info(f'anime before cleaning : {len(df)}')
     df = df.dropna(subset=['rating','genre','type']) # as there is low na values so we can drop them 
     df = df[df['rating']>=MIN_RATING_VALUE].copy() #not including -1 values 
+        # filter hentai
+    before = len(df)
+    df = df[~df['genre'].str.contains('Hentai', na=False)]
+    log.info(f"Removed hentai: {before - len(df)} anime dropped")
+
+        # filter unpopular anime (less than 1000 members)
+    before = len(df)
+    df = df[df['members'] >= 1000]
+    log.info(f"Removed unpopular: {before - len(df)} anime dropped")
     log.info(f'after min rating: {len(df)}')
     r_min = df['rating'].min()
     r_max = df['rating'].max()
@@ -38,6 +47,8 @@ def clean_anime(df):
     df['name'] = df['name'].apply(lambda x: re.sub(r'\b2nd\b', 'second', x))
     df['name'] = df['name'].apply(lambda x: re.sub(r'\b3rd\b', 'third', x))
     df['name'] = df['name'].str.strip()
+
+
 
     log.info(f'Final anime : {len(df)}')
     return df.reset_index(drop=True)
