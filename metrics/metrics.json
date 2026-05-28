@@ -1,0 +1,6 @@
+{
+  "precision_at_3": 0.0321,
+  "hitrate_at_3": 0.091,
+  "ndcg_at_3": 0.0351,
+  "n_users": 66276
+}
