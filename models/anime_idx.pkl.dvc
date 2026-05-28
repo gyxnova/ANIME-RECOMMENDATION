@@ -1,0 +1,5 @@
+outs:
+- md5: 19b95a3cf86144de48741684de41e63b
+  size: 127751
+  hash: md5
+  path: anime_idx.pkl
