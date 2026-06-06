@@ -6,7 +6,9 @@ ROOT    = Path(__file__).resolve().parents[2]
 DB_PATH = ROOT / "data" / "users.db"
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    # ensure directory exists (Docker build may exclude data/)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row  # return dict-like rows
     return conn
 
