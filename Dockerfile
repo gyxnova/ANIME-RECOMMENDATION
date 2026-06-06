@@ -5,12 +5,14 @@ ENV PYTHONUNBUFFERED=1
 
 # install dependencies first to leverage layer caching
 COPY requirements.txt .
+COPY setup.py .
+# copy source package so editable install (-e .) works
+COPY src/ ./src/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# copy only application code (exclude models, data, notebooks via .dockerignore)
+# copy only application entry files
 COPY app.py .
 COPY app.yaml .
-COPY src/ ./src/
 
 # expose Hugging Face port
 EXPOSE 7860
