@@ -20,3 +20,4 @@ uvicorn
 thefuzz
 python-Levenshtein
 scikit-surprise
+implicit
