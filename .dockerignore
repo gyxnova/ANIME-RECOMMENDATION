@@ -38,3 +38,10 @@ data/users.db
 !data/processed/
 !data/features/*
 !data/processed/*
+
+data/features/anime_features.parquet
+data/features/user_features.parquet
+data/processed/.gitkeep
+data/processed/anime_merged.csv
+data/processed/rating_test.parquet
+data/processed/rating_train.parquet
