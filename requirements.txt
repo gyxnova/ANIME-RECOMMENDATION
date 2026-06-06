@@ -2,21 +2,21 @@
 -e .
 
 # external requirements
-click
-coverage
-dvc
-flake8
-joblib
-numpy
-pandas
-pyarrow
-python-dotenv>=0.5.1
 requests
+beautifulsoup4
+pandas
+numpy
+pyarrow
+duckdb
+scikit-learn
 scipy
-Sphinx
-dvc-gdrive
+joblib
+implicit
 fastapi
 uvicorn
+pydantic
+python-dotenv
+PyYAML
+aiofiles
 thefuzz
 python-Levenshtein
-scikit-surprise
