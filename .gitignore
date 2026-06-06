@@ -92,5 +92,3 @@ target/
 .mypy_cache/
 
 /models/
-/data/processed/
-/data/features/

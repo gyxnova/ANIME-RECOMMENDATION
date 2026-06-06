@@ -4,3 +4,5 @@ models/anime_idx.pkl filter=lfs diff=lfs merge=lfs -text
 models/user_idx.pkl filter=lfs diff=lfs merge=lfs -text
 
 data/features/*.pkl filter=lfs diff=lfs merge=lfs -text
+data/processed/*.parquet filter=lfs diff=lfs merge=lfs -text
+data/features/*.parquet filter=lfs diff=lfs merge=lfs -text
