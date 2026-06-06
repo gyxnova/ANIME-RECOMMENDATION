@@ -1,0 +1,26 @@
+# Ignore common unwanted files and large data/model directories
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+.DS_Store
+*.egg-info/
+.git
+.dvc/
+models/
+data/
+notebooks/
+*.sqlite
+*.db
+.cache
+*.log
+*.parquet
+*.pkl
+
+# Keep requirements and docker config
+!requirements.txt
+!Dockerfile
+!app.yaml
+!app.py
+!src/
