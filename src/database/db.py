@@ -1,4 +1,5 @@
 import sqlite3
+import uuid
 from pathlib import Path
 
 ROOT    = Path(__file__).resolve().parents[2]
@@ -17,6 +18,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+            public_id  TEXT UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -43,6 +45,19 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(user_id)
         )
     """)
+
+    cursor.execute("PRAGMA table_info(users)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "public_id" not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN public_id TEXT")
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_public_id ON users(public_id)")
+        cursor.execute("SELECT user_id FROM users WHERE public_id IS NULL")
+        rows = cursor.fetchall()
+        for row in rows:
+            cursor.execute(
+                "UPDATE users SET public_id = ? WHERE user_id = ?",
+                (str(uuid.uuid4()), row[0])
+            )
 
     conn.commit()
     conn.close()
