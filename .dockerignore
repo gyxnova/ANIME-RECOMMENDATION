@@ -9,7 +9,6 @@ venv/
 .git
 .dvc/
 models/
-data/
 notebooks/
 *.sqlite
 *.db
@@ -17,6 +16,11 @@ notebooks/
 *.log
 *.parquet
 *.pkl
+
+data/external/
+data/raw/
+data/interim/
+data/users.db
 
 # Keep requirements and docker config
 !requirements.txt
