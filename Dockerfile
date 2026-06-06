@@ -1,15 +1,18 @@
 FROM python:3.11-slim
 
 WORKDIR /app
+ENV PYTHONUNBUFFERED=1
 
-# install dependencies
+# install dependencies first to leverage layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# copy everything
-COPY . .
+# copy only application code (exclude models, data, notebooks via .dockerignore)
+COPY app.py .
+COPY app.yaml .
+COPY src/ ./src/
 
-# expose HuggingFace port
+# expose Hugging Face port
 EXPOSE 7860
 
 # start server
