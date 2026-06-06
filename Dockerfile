@@ -8,7 +8,10 @@ COPY requirements.txt .
 COPY setup.py .
 # copy source package so editable install (-e .) works
 COPY src/ ./src/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends libgomp1 \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& pip install --no-cache-dir -r requirements.txt
 
 # copy only application entry files
 COPY app.py .
