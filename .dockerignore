@@ -24,3 +24,7 @@ notebooks/
 !app.yaml
 !app.py
 !src/
+
+# Include model files in Docker context so they are available at runtime
+!models/
+!models/*.pkl

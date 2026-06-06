@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 COPY app.yaml .
 COPY configs/ ./configs/
+COPY models/ ./models/
 
 # expose Hugging Face port
 EXPOSE 7860
