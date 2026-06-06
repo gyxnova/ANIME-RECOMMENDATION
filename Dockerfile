@@ -18,6 +18,8 @@ COPY app.py .
 COPY app.yaml .
 COPY configs/ ./configs/
 COPY models/ ./models/
+COPY data/features/ ./data/features/
+COPY data/processed/ ./data/processed/
 
 # expose Hugging Face port
 EXPOSE 7860
