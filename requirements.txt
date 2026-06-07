@@ -11,7 +11,6 @@ duckdb
 scikit-learn
 scipy
 joblib
-implicit
 fastapi
 uvicorn
 pydantic
@@ -20,3 +19,4 @@ PyYAML
 aiofiles
 thefuzz
 python-Levenshtein
+scikit-surprise

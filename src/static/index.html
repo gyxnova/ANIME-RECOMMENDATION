@@ -241,9 +241,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2.5rem;displ
     <div class="modal-step" id="step3">
       <div class="modal-label">// Profile Created!</div>
       <div class="modal-title">Welcome to AnimeAI</div>
-      <div class="modal-sub">Save your profile ID to get personalized recommendations anytime</div>
+      <div class="modal-sub">Save your User ID to get personalized recommendations anytime</div>
       <div class="user-id-box">
-        <div class="user-id-label">Your Profile ID</div>
+        <div class="user-id-label">Your User ID</div>
         <div class="user-id-value" id="newUserId">—</div>
         <button class="copy-btn" onclick="copyUserId()">⎘ Copy ID</button>
       </div>
@@ -553,7 +553,7 @@ async function goStep3(){
     const payload={genres:selectedGenres,anime_ratings:Object.entries(ratedAnime).map(([id,r])=>({anime_id:parseInt(id),rating:r*2}))};
     const resp=await fetch(`${API}/onboarding`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await resp.json();
-    newUserIdVal=data.public_id;
+    newUserIdVal=data.user_id;
     document.getElementById('newUserId').textContent=newUserIdVal;
     document.getElementById('step2').classList.remove('active');
     document.getElementById('step3').classList.add('active');

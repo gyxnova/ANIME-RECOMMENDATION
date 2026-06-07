@@ -1,5 +1,4 @@
-import sys
-import uuid
+import sys 
 import numpy as np
 import joblib
 from pathlib import Path
@@ -50,22 +49,7 @@ anime_lookup = anime_full.set_index('anime_id')[[
     'name', 'genre', 'rating', 'image_url', 'description_clean'
 ]].to_dict('index')
 
-def is_uuid(value: str) -> bool:
-    try:
-        uuid.UUID(value)
-        return True
-    except (ValueError, TypeError):
-        return False
-
-
-def get_internal_user_id(public_id: str):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE public_id = ?", (public_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row['user_id'] if row else None
-
+from src.database.db import get_connection, init_db
 
 def get_user_ratings_from_db(user_id: int):
     """Get ratings for SQLite users"""
@@ -107,57 +91,51 @@ def find_similar_kaggle_users(rated_anime: dict, top_n: int = 10):
     return [uid for uid, _ in similar]
 
 
-@app.get("/recommend/{user_identifier}")
+@app.get("/recommend/{user_id}")
 
-def recommend(user_identifier: str, top_k: int = 3):
+def recommend(user_id: int, top_k: int = 3):
 
     idx_to_anime = {v: k for k, v in anime_idx.items()}
 
-    db_ratings = {}
-    user_id = None
-
-    if is_uuid(user_identifier):
-        user_id = get_internal_user_id(user_identifier)
-        if user_id is None:
-            return {"error": "User not found"}
-        db_ratings = get_user_ratings_from_db(user_id)
-    else:
-        try:
-            user_id = int(user_identifier)
-        except ValueError:
-            return {"error": "Invalid user ID"}
-        db_ratings = get_user_ratings_from_db(user_id)
+    # check SQLite first
+    db_ratings = get_user_ratings_from_db(user_id)
 
     if db_ratings:
+        # NEW USER — find similar Kaggle users
         similar_users = find_similar_kaggle_users(db_ratings)
 
         if not similar_users:
             return {"error": "Not enough data to recommend. Rate more anime!"}
 
+        # aggregate scores from similar users
         agg_scores = np.zeros(len(anime_idx))
         for sim_uid in similar_users:
             u = user_idx[sim_uid]
             agg_scores += model.item_factors[u] @ model.user_factors.T
 
+        # filter already rated
         for anime_id in db_ratings:
             if anime_id in anime_idx:
                 agg_scores[anime_idx[anime_id]] = -999
 
         top_indices = np.argsort(agg_scores)[::-1][:top_k]
+
     else:
+        # KAGGLE USER — use ALS directly
         if user_id not in user_idx:
             return {"error": f"User {user_id} not found"}
 
-        u = user_idx[user_id]
+        u      = user_idx[user_id]
         scores = model.item_factors[u] @ model.user_factors.T
 
         rated_indices = matrix[u].nonzero()[1]
         for idx in rated_indices:
             scores[idx] = -999
 
-        top_indices = np.argsort(scores)[::-1][:top_k]
-        agg_scores = scores
+        top_indices   = np.argsort(scores)[::-1][:top_k]
+        agg_scores    = scores
 
+    # build response
     results = []
     for rank, idx in enumerate(top_indices, 1):
         anime_id = idx_to_anime.get(int(idx))
@@ -175,7 +153,7 @@ def recommend(user_identifier: str, top_k: int = 3):
             "score":       float(agg_scores[idx])
         })
 
-    return {"user_identifier": user_identifier, "top3": results}
+    return {"user_id": user_id, "top3": results}
 
 @app.get("/featured")
 def featured():
@@ -214,9 +192,8 @@ def onboarding(data: dict):
     conn   = get_connection()
     cursor = conn.cursor()
 
-    # create new user with a public UUID identifier
-    public_id = str(uuid.uuid4())
-    cursor.execute("INSERT INTO users (public_id) VALUES (?)", (public_id,))
+    # create new user
+    cursor.execute("INSERT INTO users DEFAULT VALUES")
     new_user_id = cursor.lastrowid
 
     # save genre preferences
@@ -236,7 +213,7 @@ def onboarding(data: dict):
     conn.commit()
     conn.close()
 
-    return {"public_id": public_id, "message": "Profile created!"}
+    return {"user_id": new_user_id, "message": "Profile created!"}
 
 
 @app.get("/popular/{genre}")
