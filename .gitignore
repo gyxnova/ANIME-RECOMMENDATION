@@ -80,12 +80,12 @@ target/
 /data/raw/
 /data/interim/
 /data/users.db
-/data/processed/.gitkeep
-/data/processed/anime_merged.csv
-/data/processed/rating_test.parquet
-/data/processed/rating_train.parquet
-/data/features/anime_features.parquet
-/data/features/user_features.parquet
+# /data/processed/.gitkeep
+# /data/processed/anime_merged.csv
+# /data/processed/rating_test.parquet
+# /data/processed/rating_train.parquet
+# /data/features/anime_features.parquet
+# /data/features/user_features.parquet
 
 # Mac OS-specific storage files
 .DS_Store
@@ -97,4 +97,4 @@ target/
 # Mypy cache
 .mypy_cache/
 
-/models/
+# /models/
