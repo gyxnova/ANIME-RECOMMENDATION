@@ -85,6 +85,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2.5rem;displ
 .color-indicator{display:flex;align-items:center;gap:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
 .color-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);transition:background 1s;box-shadow:0 0 6px rgba(var(--accent-rgb),0.8)}
 .color-timer{font-size:0.7rem;color:var(--muted)}
+.color-timer{display:none}
  
 /* ── HERO ── */
 .hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
@@ -302,12 +303,12 @@ const API = 'https://anime-recommendation-ypi9.onrender.com';
 const IS_STATIC_HOST = window.location.protocol === 'file:';
 const STATIC_GENRES = ['Action','Adventure','Comedy','Drama','Fantasy','Romance','Sci-Fi','Mystery'];
 const STATIC_DEMO_ANIME = [
-  {anime_id:20,name:'Naruto',genre:'Action, Adventure',rating:8.3,image_url:'https://placehold.co/200x290/141428/00fff5?text=Naruto'},
-  {anime_id:1575,name:'Code Geass',genre:'Action, Drama, Sci-Fi',rating:8.7,image_url:'https://placehold.co/200x290/141428/00fff5?text=Code+Geass'},
-  {anime_id:1535,name:'Death Note',genre:'Mystery, Police, Psychological',rating:8.6,image_url:'https://placehold.co/200x290/141428/00fff5?text=Death+Note'},
-  {anime_id:5114,name:'Fullmetal Alchemist: Brotherhood',genre:'Action, Adventure, Drama',rating:9.2,image_url:'https://placehold.co/200x290/141428/00fff5?text=FMA'},
-  {anime_id:16498,name:'Attack on Titan',genre:'Action, Drama, Fantasy',rating:9.1,image_url:'https://placehold.co/200x290/141428/00fff5?text=Attack+on+Titan'},
-  {anime_id:9253,name:'Steins;Gate',genre:'Drama, Sci-Fi, Thriller',rating:9.1,image_url:'https://placehold.co/200x290/141428/00fff5?text=Steins;Gate'}
+  {anime_id:20,name:'Naruto',genre:'Action, Adventure',rating:8.3,image_url:'https://cdn.myanimelist.net/images/anime/13/17405.jpg'},
+  {anime_id:1575,name:'Code Geass',genre:'Action, Drama, Sci-Fi',rating:8.7,image_url:'https://cdn.myanimelist.net/images/anime/5/50331.jpg'},
+  {anime_id:1535,name:'Death Note',genre:'Mystery, Police, Psychological',rating:8.6,image_url:'https://cdn.myanimelist.net/images/anime/9/9453.jpg'},
+  {anime_id:5114,name:'Fullmetal Alchemist: Brotherhood',genre:'Action, Adventure, Drama',rating:9.2,image_url:'https://cdn.myanimelist.net/images/anime/1208/94745.jpg'},
+  {anime_id:16498,name:'Attack on Titan',genre:'Action, Drama, Fantasy',rating:9.1,image_url:'https://cdn.myanimelist.net/images/anime/10/47347.jpg'},
+  {anime_id:9253,name:'Steins;Gate',genre:'Drama, Sci-Fi, Thriller',rating:9.1,image_url:'https://cdn.myanimelist.net/images/anime/1935/127974.jpg'}
 ];
 let featuredAnime=[];
 let selectedGenres=[];
@@ -476,12 +477,7 @@ async function loadFeatured(){
       createFloatingCards(sh);
     },8000);
   }catch(e){
-    const ph=Array(10).fill(0).map((_,i)=>({
-      name:['Naruto','Death Note','AoT','SAO','Bleach','One Piece','FMA','Tokyo Ghoul','Code Geass','HxH'][i],
-      rating:(7+Math.random()*2).toFixed(1),
-      image_url:`https://placehold.co/200x290/141428/00fff5?text=${['Naruto','Death Note','AoT','SAO','Bleach','One Piece','FMA','Tokyo Ghoul','Code Geass','HxH'][i]}`
-    }));
-    createFloatingCards(ph);buildTicker(ph);
+    createFloatingCards(STATIC_DEMO_ANIME);buildTicker(STATIC_DEMO_ANIME);
   }
 }
  
