@@ -182,7 +182,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2.5rem;displ
 .result-meta{display:flex;align-items:center;justify-content:space-between}
 .result-rating{color:var(--gold);font-weight:700;font-size:0.9rem}
 .result-score{font-size:0.72rem;color:var(--accent);background:rgba(var(--accent-rgb),0.1);padding:0.2rem 0.6rem;border-radius:2px;letter-spacing:0.08em;transition:color 1s,background 1s}
-.result-desc{font-size:0.8rem;color:var(--muted);margin-top:0.8rem;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.result-desc{font-size:0.8rem;color:var(--muted);margin-top:0.8rem;line-height:1.6;display:-webkit-box;line-clamp:3;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
  
 /* ── TICKER ── */
 .ticker-wrap{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid rgba(var(--accent-rgb),0.15);padding:0.5rem 0;overflow:hidden;z-index:50;transition:border-color 1s}
@@ -299,6 +299,16 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2.5rem;displ
  
 <script>
 const API = window.location.origin;
+const IS_STATIC_HOST = window.location.protocol === 'file:' || window.location.hostname.endsWith('.github.io');
+const STATIC_GENRES = ['Action','Adventure','Comedy','Drama','Fantasy','Romance','Sci-Fi','Mystery'];
+const STATIC_DEMO_ANIME = [
+  {anime_id:20,name:'Naruto',genre:'Action, Adventure',rating:8.3,image_url:'https://placehold.co/200x290/141428/00fff5?text=Naruto'},
+  {anime_id:1575,name:'Code Geass',genre:'Action, Drama, Sci-Fi',rating:8.7,image_url:'https://placehold.co/200x290/141428/00fff5?text=Code+Geass'},
+  {anime_id:1535,name:'Death Note',genre:'Mystery, Police, Psychological',rating:8.6,image_url:'https://placehold.co/200x290/141428/00fff5?text=Death+Note'},
+  {anime_id:5114,name:'Fullmetal Alchemist: Brotherhood',genre:'Action, Adventure, Drama',rating:9.2,image_url:'https://placehold.co/200x290/141428/00fff5?text=FMA'},
+  {anime_id:16498,name:'Attack on Titan',genre:'Action, Drama, Fantasy',rating:9.1,image_url:'https://placehold.co/200x290/141428/00fff5?text=Attack+on+Titan'},
+  {anime_id:9253,name:'Steins;Gate',genre:'Drama, Sci-Fi, Thriller',rating:9.1,image_url:'https://placehold.co/200x290/141428/00fff5?text=Steins;Gate'}
+];
 let featuredAnime=[];
 let selectedGenres=[];
 let ratedAnime={};
@@ -456,8 +466,8 @@ function createFloatingCards(anime){
  
 async function loadFeatured(){
   try{
-    const r=await fetch(`${API}/featured`);
-    const data=await r.json();
+    const r=IS_STATIC_HOST?null:await fetch(`${API}/featured`);
+    const data=IS_STATIC_HOST?{anime:STATIC_DEMO_ANIME}:{anime:await r.json()};
     featuredAnime=data.anime;
     createFloatingCards(featuredAnime);
     buildTicker(featuredAnime);
@@ -490,8 +500,8 @@ function updateProgress(step){
 }
 async function loadGenres(){
   try{
-    const r=await fetch(`${API}/genres`);
-    const data=await r.json();
+    const r=IS_STATIC_HOST?null:await fetch(`${API}/genres`);
+    const data=IS_STATIC_HOST?{genres:STATIC_GENRES}:{genres:(await r.json()).genres};
     document.getElementById('genreGrid').innerHTML=data.genres.map(g=>
       `<button class="genre-chip" onclick="toggleGenre(this,'${g}')">${g}</button>`
     ).join('');
@@ -513,8 +523,8 @@ async function loadAnimeForPicker(){
   const grid=document.getElementById('animePickerGrid');
   grid.innerHTML='<div style="color:var(--accent);grid-column:1/-1;text-align:center;padding:2rem;letter-spacing:0.3em;font-size:0.8rem">// LOADING...</div>';
   try{
-    const r=await fetch(`${API}/popular/${encodeURIComponent(selectedGenres[0])}?limit=18`);
-    const data=await r.json();
+    const r=IS_STATIC_HOST?null:await fetch(`${API}/popular/${encodeURIComponent(selectedGenres[0])}?limit=18`);
+    const data=IS_STATIC_HOST?{anime:STATIC_DEMO_ANIME}:{anime:(await r.json()).anime};
     grid.innerHTML=data.anime.map(a=>`
       <div class="picker-card" onclick="toggleAnime(this,${a.anime_id})" data-id="${a.anime_id}">
         <img src="${a.image_url}" alt="${a.name}" onerror="this.src='https://placehold.co/128x168/141428/00fff5?text=?'">
@@ -550,6 +560,14 @@ function goStep1(){
 async function goStep3(){
   if(Object.keys(ratedAnime).length<3){alert('Please rate at least 3 anime!');return;}
   try{
+    if(IS_STATIC_HOST){
+      newUserIdVal='DEMO-' + Math.floor(1000 + Math.random()*9000);
+      document.getElementById('newUserId').textContent=newUserIdVal;
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step3').classList.add('active');
+      updateProgress(3);
+      return;
+    }
     const payload={genres:selectedGenres,anime_ratings:Object.entries(ratedAnime).map(([id,r])=>({anime_id:parseInt(id),rating:r*2}))};
     const resp=await fetch(`${API}/onboarding`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await resp.json();
@@ -582,8 +600,8 @@ async function getRecommendations(){
   const grid=document.getElementById('resultsGrid');
   loading.classList.add('active');error.classList.remove('active');grid.innerHTML='';
   try{
-    const r=await fetch(`${API}/recommend/${uid}`);
-    const data=await r.json();
+    const r=IS_STATIC_HOST?null:await fetch(`${API}/recommend/${uid}`);
+    const data=IS_STATIC_HOST?{top3:STATIC_DEMO_ANIME.slice(0,3).map((anime,index)=>({...anime,rank:index+1,score:0.9-index*0.07,description:'Demo recommendation. Connect the FastAPI service for personalized results.'}))}:{...(await r.json())};
     loading.classList.remove('active');
     if(data.error){error.textContent=`⚠ ${data.error}`;error.classList.add('active');return;}
     grid.innerHTML=data.top3.map(anime=>`
