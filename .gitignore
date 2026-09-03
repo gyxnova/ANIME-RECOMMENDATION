@@ -80,6 +80,7 @@ target/
 /data/raw/
 /data/interim/
 /data/users.db
+/ANIME-RECOMMENDATION/
 # /data/processed/.gitkeep
 # /data/processed/anime_merged.csv
 # /data/processed/rating_test.parquet
