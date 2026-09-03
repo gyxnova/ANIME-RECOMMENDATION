@@ -1,47 +1,18 @@
-# Ignore common unwanted files and large data/model directories
 __pycache__/
 *.pyc
 .venv/
 env/
 venv/
 .DS_Store
-*.egg-info/
 .git
 .dvc/
-models/
 notebooks/
-*.sqlite
-*.db
 .cache
 *.log
-*.parquet
-*.pkl
 
-data/external/
 data/raw/
+data/external/
 data/interim/
-data/users.db
 
-# Keep requirements and docker config
-!requirements.txt
-!Dockerfile
-!app.yaml
-!app.py
-!src/
-
-# Include model files in Docker context so they are available at runtime
-!models/
-!models/*.pkl
-
-# Include processed data and features needed at runtime
-!data/features/
-!data/processed/
-!data/features/*
-!data/processed/*
-
-data/features/anime_features.parquet
-data/features/user_features.parquet
-data/processed/.gitkeep
-data/processed/anime_merged.csv
-data/processed/rating_test.parquet
-data/processed/rating_train.parquet
+*.sqlite
+*.db

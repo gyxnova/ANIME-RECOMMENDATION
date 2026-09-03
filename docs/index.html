@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnimeAI — Your Personal Anime Oracle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Rajdhani:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ── CYBERPUNK DARK PALETTE ── */
+:root{
+  --bg:#0a0a0f;--bg2:#0f0f1a;--bg3:#141428;--surface:#1a1a2e;
+  --border:rgba(255,255,255,0.06);--text:#e8e8f0;--muted:#6a6a9a;
+  --gold:#ffd700;--card-w:200px;--card-h:290px;
+  /* ACCENT — changes every minute */
+  --accent:#00fff5;--accent-rgb:0,255,245;
+  --accent2:#ff00aa;--accent2-rgb:255,0,170;
+}
+ 
+/* ── LIGHT PALETTE (soft sakura) ── */
+[data-theme="light"]{
+  --bg:#fdf6f0;--bg2:#f5ece6;--bg3:#ecddd6;--surface:#fff;
+  --border:rgba(0,0,0,0.08);--text:#2a1a1a;--muted:#9a7a7a;
+  --accent:#ff6b9d;--accent-rgb:255,107,157;
+  --accent2:#ff9e6d;--accent2-rgb:255,158,109;
+}
+ 
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none;transition:background 0.5s,color 0.5s}
+ 
+/* ── CURSOR ── */
+.cursor{
+  position:fixed;pointer-events:none;z-index:9999;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 10px rgba(var(--accent-rgb),0.8),0 0 30px rgba(var(--accent-rgb),0.4);
+  transform:translate(-50%,-50%);
+  transition:background 1s,box-shadow 1s,transform 0.05s;
+}
+.cursor-ring{
+  position:fixed;pointer-events:none;z-index:9998;
+  width:36px;height:36px;border-radius:50%;
+  border:1.5px solid rgba(var(--accent-rgb),0.6);
+  transform:translate(-50%,-50%);
+  transition:border-color 1s,width 0.2s,height 0.2s,left 0.12s ease,top 0.12s ease;
+}
+.cursor-ring.hover{width:50px;height:50px;}
+.cursor-dot{
+  position:fixed;pointer-events:none;z-index:9997;
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(var(--accent-rgb),0.4);
+  transform:translate(-50%,-50%);
+  transition:background 1s,left 0.25s ease,top 0.25s ease;
+}
+ 
+/* glow trail */
+.trail-dot{
+  position:fixed;pointer-events:none;z-index:9996;
+  width:4px;height:4px;border-radius:50%;
+  background:var(--accent);
+  transform:translate(-50%,-50%);
+  opacity:0;animation:trailFade 0.6s ease forwards;
+}
+@keyframes trailFade{0%{opacity:0.6;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(0)}}
+ 
+/* scanline overlay for dark mode */
+[data-theme="dark"] body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+}
+ 
+/* grain */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:0.5}
+ 
+/* ── HEADER ── */
+header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,var(--bg) 60%,transparent);backdrop-filter:blur(4px)}
+.logo{font-family:'Cinzel Decorative',serif;font-size:1.4rem;letter-spacing:0.1em;text-shadow:0 0 20px rgba(var(--accent-rgb),0.5);transition:text-shadow 1s}
+.logo span{color:var(--accent);transition:color 1s}
+.header-right{display:flex;align-items:center;gap:1rem}
+.btn-sm{background:transparent;border:1px solid rgba(var(--accent-rgb),0.4);color:var(--accent);padding:0.4rem 1rem;border-radius:4px;cursor:none;font-family:'Rajdhani',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;transition:all 0.3s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)}
+.btn-sm:hover{background:rgba(var(--accent-rgb),0.15);border-color:var(--accent);box-shadow:0 0 12px rgba(var(--accent-rgb),0.3)}
+ 
+/* color indicator */
+.color-indicator{display:flex;align-items:center;gap:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
+.color-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);transition:background 1s;box-shadow:0 0 6px rgba(var(--accent-rgb),0.8)}
+.color-timer{font-size:0.7rem;color:var(--muted)}
+ 
+/* ── HERO ── */
+.hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(var(--accent-rgb),0.08) 0%,transparent 65%);transition:background 1s}
+.cards-stage{position:absolute;inset:0;overflow:hidden}
+.float-card{position:absolute;width:var(--card-w);height:var(--card-h);border-radius:4px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(var(--accent-rgb),0.15);cursor:none;transition:box-shadow 1s}
+.float-card img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(0.9)}
+.float-card .card-overlay{position:absolute;bottom:0;left:0;right:0;padding:1rem;background:linear-gradient(transparent,rgba(0,0,0,0.95));transform:translateY(100%);transition:transform 0.3s ease}
+.float-card:hover .card-overlay{transform:translateY(0)}
+.card-name{font-size:0.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;transition:color 1s}
+.card-rating{font-size:0.72rem;color:var(--gold);margin-top:0.2rem}
+ 
+.hero-center{position:relative;z-index:10;text-align:center;padding:2rem}
+.hero-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,6vw,5rem);line-height:1.1;letter-spacing:0.05em;margin-bottom:1rem}
+.hero-title .line1{color:var(--text)}
+.hero-title .line2{color:var(--accent);text-shadow:0 0 40px rgba(var(--accent-rgb),0.7),0 0 80px rgba(var(--accent-rgb),0.3);transition:color 1s,text-shadow 1s}
+.hero-sub{font-size:1rem;color:var(--muted);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:2.5rem}
+.btn-hero{border:1px solid var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),0.08);padding:0.9rem 2.5rem;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 0.3s;margin:0 0.4rem;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+.btn-hero:hover{background:rgba(var(--accent-rgb),0.2);box-shadow:0 0 20px rgba(var(--accent-rgb),0.4),inset 0 0 20px rgba(var(--accent-rgb),0.05)}
+.btn-hero.solid{background:var(--accent);color:var(--bg);font-weight:900}
+.btn-hero.solid:hover{box-shadow:0 0 30px rgba(var(--accent-rgb),0.6)}
+ 
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:var(--muted);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+ 
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg2);border:1px solid rgba(var(--accent-rgb),0.3);border-radius:4px;width:min(700px,95vw);max-height:90vh;overflow-y:auto;padding:2.5rem;position:relative;box-shadow:0 0 40px rgba(var(--accent-rgb),0.1);transition:border-color 1s,box-shadow 1s}
+.modal-step{display:none}
+.modal-step.active{display:block}
+.modal-label{font-size:0.68rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;transition:color 1s}
+.modal-title{font-family:'Cinzel Decorative',serif;font-size:1.7rem;margin-bottom:0.5rem}
+.modal-sub{color:var(--muted);margin-bottom:2rem;font-size:1rem}
+.progress-bar{display:flex;gap:0.5rem;margin-bottom:2rem}
+.progress-dot{height:3px;flex:1;background:var(--border);border-radius:2px;transition:background 0.3s}
+.progress-dot.active{background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),0.6);transition:background 1s}
+.progress-dot.done{background:var(--accent2);transition:background 1s}
+.genre-grid{display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:2rem}
+.genre-chip{padding:0.4rem 1rem;border:1px solid var(--border);border-radius:2px;cursor:none;font-family:'Rajdhani',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.2s;background:transparent;color:var(--muted);clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%)}
+.genre-chip:hover{border-color:rgba(var(--accent-rgb),0.6);color:var(--accent)}
+.genre-chip.selected{background:rgba(var(--accent-rgb),0.15);border-color:var(--accent);color:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),0.2)}
+.anime-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:1rem;margin-bottom:2rem}
+.picker-card{border-radius:2px;overflow:hidden;border:1px solid var(--border);cursor:none;transition:all 0.2s;position:relative}
+.picker-card img{width:100%;height:168px;object-fit:cover;display:block}
+.picker-card .picker-name{padding:0.5rem;font-size:0.73rem;font-weight:700;text-transform:capitalize;background:var(--surface);line-height:1.3}
+.picker-card.selected{border-color:var(--accent);box-shadow:0 0 12px rgba(var(--accent-rgb),0.3)}
+.picker-card .rating-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:none;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem}
+.picker-card.selected .rating-overlay{display:flex}
+.star-row{display:flex;gap:0.3rem}
+.star{font-size:1.3rem;cursor:none;transition:transform 0.1s,color 0.2s;color:var(--border)}
+.star:hover,.star.active{color:var(--gold);transform:scale(1.2)}
+.picker-label{font-size:0.62rem;color:rgba(255,255,255,0.6);letter-spacing:0.15em;text-transform:uppercase}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.btn-next{background:var(--accent);border:none;color:var(--bg);padding:0.8rem 2rem;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 1s}
+.btn-next:hover{box-shadow:0 0 20px rgba(var(--accent-rgb),0.5)}
+.btn-back{background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.8rem 1.5rem;font-family:'Rajdhani',sans-serif;font-size:0.85rem;font-weight:600;border-radius:2px;cursor:none;transition:all 0.2s}
+.btn-back:hover{border-color:var(--muted);color:var(--text)}
+.step-count{color:var(--muted);font-size:0.85rem;letter-spacing:0.1em}
+.user-id-box{background:var(--bg3);border:1px solid rgba(var(--accent-rgb),0.3);border-radius:4px;padding:1.5rem;text-align:center;margin:1.5rem 0;box-shadow:inset 0 0 20px rgba(var(--accent-rgb),0.05);transition:border-color 1s,box-shadow 1s}
+.user-id-label{font-size:0.7rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem}
+.user-id-value{font-family:'Cinzel Decorative',serif;font-size:2.5rem;color:var(--accent);text-shadow:0 0 20px rgba(var(--accent-rgb),0.5);transition:color 1s,text-shadow 1s}
+.copy-btn{margin-top:0.75rem;background:transparent;border:1px solid rgba(var(--accent-rgb),0.4);color:var(--accent);padding:0.4rem 1rem;border-radius:2px;cursor:none;font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:600;letter-spacing:0.12em;transition:all 0.2s}
+.copy-btn:hover{background:rgba(var(--accent-rgb),0.1)}
+ 
+/* ── SEARCH SECTION ── */
+.search-section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6rem 2rem;position:relative}
+.search-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(var(--accent2-rgb),0.04) 0%,transparent 50%),radial-gradient(ellipse at 70% 50%,rgba(var(--accent-rgb),0.04) 0%,transparent 50%);transition:background 1s}
+.section-label{font-size:0.7rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;transition:color 1s}
+.section-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,4vw,3rem);text-align:center;margin-bottom:0.75rem}
+.section-sub{color:var(--muted);text-align:center;margin-bottom:3rem;font-size:0.95rem;letter-spacing:0.12em}
+.search-box{display:flex;width:min(600px,90vw);margin-bottom:4rem}
+.search-input{flex:1;background:var(--surface);border:1px solid rgba(var(--accent-rgb),0.3);border-right:none;color:var(--text);cursor: text !important;pointer-events: all !important;position: relative;z-index: 10000;padding:1rem 1.5rem;font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:600;border-radius:2px 0 0 2px;outline:none;transition:border-color 1s}
+.search-input:focus{border-color:var(--accent);box-shadow:-4px 0 0 rgba(var(--accent-rgb),0.3)}
+.search-input::placeholder{color:var(--muted)}
+.search-btn{background:var(--accent);border:none;color:var(--bg);padding:1rem 2rem;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;border-radius:0 2px 2px 0;cursor:none;transition:background 1s,box-shadow 1s}
+.search-btn:hover{box-shadow:0 0 20px rgba(var(--accent-rgb),0.5)}
+.results-area{width:min(900px,90vw)}
+.results-loading{text-align:center;color:var(--accent);font-size:0.85rem;letter-spacing:0.3em;display:none;text-transform:uppercase;transition:color 1s}
+.results-loading.active{display:block}
+.results-error{text-align:center;color:var(--accent);padding:2rem;border:1px solid rgba(var(--accent-rgb),0.3);border-radius:4px;display:none;transition:color 1s,border-color 1s}
+.results-error.active{display:block}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s,border-color 1s;animation:fadeUp 0.5s ease both}
+.result-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(var(--accent-rgb),0.2),0 0 0 1px rgba(var(--accent-rgb),0.3)}
+.result-card:nth-child(2){animation-delay:0.1s}
+.result-card:nth-child(3){animation-delay:0.2s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.result-img{width:100%;height:200px;object-fit:cover;display:block}
+.result-img-placeholder{width:100%;height:200px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--muted)}
+.result-body{padding:1.2rem}
+.result-rank{font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;transition:color 1s}
+.result-name{font-size:1.15rem;font-weight:700;text-transform:capitalize;margin-bottom:0.5rem;line-height:1.3}
+.result-genre{font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem;line-height:1.5}
+.result-meta{display:flex;align-items:center;justify-content:space-between}
+.result-rating{color:var(--gold);font-weight:700;font-size:0.9rem}
+.result-score{font-size:0.72rem;color:var(--accent);background:rgba(var(--accent-rgb),0.1);padding:0.2rem 0.6rem;border-radius:2px;letter-spacing:0.08em;transition:color 1s,background 1s}
+.result-desc{font-size:0.8rem;color:var(--muted);margin-top:0.8rem;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+ 
+/* ── TICKER ── */
+.ticker-wrap{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid rgba(var(--accent-rgb),0.15);padding:0.5rem 0;overflow:hidden;z-index:50;transition:border-color 1s}
+.ticker{display:flex;gap:4rem;white-space:nowrap;animation:ticker 45s linear infinite}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:0.5rem}
+.ticker-item span{color:var(--accent);transition:color 1s}
+</style>
+</head>
+<body>
+ 
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+ 
+<!-- HEADER -->
+<header>
+  <div class="logo">Anime<span>AI</span></div>
+  <div class="header-right">
+    <div class="color-indicator">
+      <div class="color-dot" id="colorDot"></div>
+      <span class="color-timer" id="colorTimer">1:00</span>
+    </div>
+    <button class="btn-sm" onclick="openOnboarding()">✦ Get Started</button>
+    <button class="btn-sm" id="themeBtn" onclick="toggleTheme()">☀ LIGHT</button>
+  </div>
+</header>
+ 
+<!-- ONBOARDING MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="modal-step active" id="step1">
+      <div class="modal-label">// Step 1 of 3</div>
+      <div class="modal-title">Your Taste</div>
+      <div class="modal-sub">Pick genres you love (choose at least 3)</div>
+      <div class="genre-grid" id="genreGrid"></div>
+      <div class="modal-footer">
+        <button class="btn-back" onclick="closeOnboarding()">Cancel</button>
+        <div class="step-count" id="genreCount">0 selected</div>
+        <button class="btn-next" onclick="goStep2()">Next →</button>
+      </div>
+    </div>
+    <div class="modal-step" id="step2">
+      <div class="modal-label">// Step 2 of 3</div>
+      <div class="modal-title">Your History</div>
+      <div class="modal-sub">Click anime you've watched and rate them (pick at least 3)</div>
+      <div class="anime-picker-grid" id="animePickerGrid"></div>
+      <div class="modal-footer">
+        <button class="btn-back" onclick="goStep1()">← Back</button>
+        <div class="step-count" id="animeCount">0 rated</div>
+        <button class="btn-next" onclick="goStep3()">Next →</button>
+      </div>
+    </div>
+    <div class="modal-step" id="step3">
+      <div class="modal-label">// Profile Created!</div>
+      <div class="modal-title">Welcome to AnimeAI</div>
+      <div class="modal-sub">Save your User ID to get personalized recommendations anytime</div>
+      <div class="user-id-box">
+        <div class="user-id-label">Your User ID</div>
+        <div class="user-id-value" id="newUserId">—</div>
+        <button class="copy-btn" onclick="copyUserId()">⎘ Copy ID</button>
+      </div>
+      <p style="color:var(--muted);font-size:0.9rem;text-align:center;margin-bottom:1.5rem">
+        Bookmark this ID — enter it anytime to get your personalized top 3!
+      </p>
+      <div style="text-align:center">
+        <button class="btn-next" onclick="useNewUser()">See My Top 3 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="cards-stage" id="cardsStage"></div>
+  <div class="hero-center">
+    <div class="hero-title">
+      <div class="line1">Your Personal</div>
+      <div class="line2">Anime Oracle</div>
+    </div>
+    <div class="hero-sub">Powered by Collaborative Intelligence</div>
+    <div>
+      <button class="btn-hero solid" onclick="openOnboarding()">✦ Get Started</button>
+      <button class="btn-hero" onclick="document.querySelector('.search-section').scrollIntoView({behavior:'smooth'})">I Have an ID</button>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Explore</span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+ 
+<!-- SEARCH SECTION -->
+<section class="search-section">
+  <div class="section-label">// Neural Recommendation Engine</div>
+  <h2 class="section-title">Already Have an ID?</h2>
+  <p class="section-sub">Enter your User ID to get AI-powered top 3 recommendations</p>
+  <div class="search-box">
+    <input type="number" class="search-input" id="userInput" placeholder="Enter your User ID" min="1"/>
+    <button class="search-btn" onclick="getRecommendations()">Reveal</button>
+  </div>
+  <div class="results-area">
+    <div class="results-loading" id="loading"><p>// SCANNING ANIME UNIVERSE...</p></div>
+    <div class="results-error" id="error"></div>
+    <div class="results-grid" id="resultsGrid"></div>
+  </div>
+</section>
+ 
+<!-- TICKER -->
+<div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
+ 
+<script>
+const API = window.location.origin;
+let featuredAnime=[];
+let selectedGenres=[];
+let ratedAnime={};
+let newUserIdVal=null;
+ 
+// ── CYBERPUNK COLOR PALETTE ──────────────────
+const DARK_COLORS=[
+  {accent:'#00fff5', rgb:'0,255,245',   name:'Cyber Cyan'},
+  {accent:'#ff00aa', rgb:'255,0,170',   name:'Neon Pink'},
+  {accent:'#7b00ff', rgb:'123,0,255',   name:'Void Purple'},
+  {accent:'#ff6600', rgb:'255,102,0',   name:'Blaze Orange'},
+  {accent:'#00ff41', rgb:'0,255,65',    name:'Matrix Green'},
+  {accent:'#ffe600', rgb:'255,230,0',   name:'Plasma Yellow'},
+  {accent:'#ff1f5a', rgb:'255,31,90',   name:'Glitch Red'},
+  {accent:'#00aaff', rgb:'0,170,255',   name:'Arc Blue'},
+];
+ 
+const LIGHT_COLORS=[
+  {accent:'#ff6b9d', rgb:'255,107,157', name:'Sakura Pink'},
+  {accent:'#7c4dff', rgb:'124,77,255',  name:'Lavender'},
+  {accent:'#00897b', rgb:'0,137,123',   name:'Jade'},
+  {accent:'#f4511e', rgb:'244,81,30',   name:'Coral'},
+  {accent:'#1e88e5', rgb:'30,136,229',  name:'Sky'},
+  {accent:'#43a047', rgb:'67,160,71',   name:'Leaf'},
+];
+ 
+let colorIdx=0;
+let timerSecs=60;
+const root=document.documentElement;
+ 
+function getCurrentPalette(){
+  return root.dataset.theme==='dark'?DARK_COLORS:LIGHT_COLORS;
+}
+ 
+function applyColor(c){
+  root.style.setProperty('--accent',c.accent);
+  root.style.setProperty('--accent-rgb',c.rgb);
+  root.style.setProperty('--accent2',c.accent);
+  root.style.setProperty('--accent2-rgb',c.rgb);
+  document.getElementById('colorDot').title=c.name;
+}
+ 
+function nextColor(){
+  const palette=getCurrentPalette();
+  colorIdx=(colorIdx+1)%palette.length;
+  applyColor(palette[colorIdx]);
+  timerSecs=60;
+}
+ 
+// color timer countdown
+setInterval(()=>{
+  timerSecs--;
+  if(timerSecs<=0){nextColor();}
+  const m=Math.floor(timerSecs/60);
+  const s=timerSecs%60;
+  document.getElementById('colorTimer').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+},1000);
+ 
+// apply initial color
+applyColor(getCurrentPalette()[0]);
+ 
+// ── CURSOR ──────────────────────────────────
+const cursor    =document.getElementById('cursor');
+const cursorRing=document.getElementById('cursorRing');
+const cursorDot =document.getElementById('cursorDot');
+let mx=0,my=0;
+let trailTimer=0;
+ 
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cursor.style.left=mx+'px';
+  cursor.style.top=my+'px';
+ 
+  // trail dots
+  trailTimer++;
+  if(trailTimer%4===0){
+    const dot=document.createElement('div');
+    dot.className='trail-dot';
+    dot.style.left=mx+'px';
+    dot.style.top=my+'px';
+    dot.style.background=`rgba(${getCurrentPalette()[colorIdx].rgb},0.5)`;
+    document.body.appendChild(dot);
+    setTimeout(()=>dot.remove(),600);
+  }
+});
+ 
+// smooth ring follow
+let rx=0,ry=0;
+setInterval(()=>{
+  rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+  cursorRing.style.left=rx+'px';
+  cursorRing.style.top=ry+'px';
+ 
+  let dx=0,dy=0;
+  dx+=(mx-dx)*0.07; dy+=(my-dy)*0.07;
+  cursorDot.style.left=(rx+dx)/2+'px';
+  cursorDot.style.top=(ry+dy)/2+'px';
+},16);
+ 
+// hover effect on interactive elements
+document.querySelectorAll('button,input,a,.float-card,.result-card,.picker-card,.genre-chip').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cursorRing.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>cursorRing.classList.remove('hover'));
+});
+ 
+// ── THEME ────────────────────────────────────
+function toggleTheme(){
+  const h=root;
+  const b=document.getElementById('themeBtn');
+  if(h.dataset.theme==='dark'){
+    h.dataset.theme='light';
+    b.textContent='🌙 DARK';
+    colorIdx=0;
+    applyColor(LIGHT_COLORS[0]);
+  }else{
+    h.dataset.theme='dark';
+    b.textContent='☀ LIGHT';
+    colorIdx=0;
+    applyColor(DARK_COLORS[0]);
+  }
+  timerSecs=60;
+}
+ 
+// ── FLOATING CARDS ───────────────────────────
+const positions=[
+  {left:'2%',top:'15%',rot:'-8deg',scale:0.85,opacity:0.55},
+  {left:'12%',top:'42%',rot:'5deg',scale:0.9,opacity:0.65},
+  {left:'5%',top:'68%',rot:'-4deg',scale:0.8,opacity:0.45},
+  {left:'22%',top:'8%',rot:'3deg',scale:0.95,opacity:0.75},
+  {left:'30%',top:'58%',rot:'-6deg',scale:0.85,opacity:0.55},
+  {left:'68%',top:'10%',rot:'6deg',scale:0.9,opacity:0.7},
+  {left:'75%',top:'48%',rot:'-3deg',scale:0.95,opacity:0.75},
+  {left:'82%',top:'70%',rot:'7deg',scale:0.85,opacity:0.55},
+  {left:'60%',top:'65%',rot:'-5deg',scale:0.9,opacity:0.6},
+  {left:'88%',top:'22%',rot:'-4deg',scale:0.8,opacity:0.45},
+];
+const fltKf=`@keyframes flt0{0%,100%{margin-top:0}50%{margin-top:-14px}}@keyframes flt1{0%,100%{margin-top:0}50%{margin-top:-10px}}@keyframes flt2{0%,100%{margin-top:0}50%{margin-top:-18px}}`;
+const ss=document.createElement('style');ss.textContent=fltKf;document.head.appendChild(ss);
+ 
+function createFloatingCards(anime){
+  const stage=document.getElementById('cardsStage');
+  stage.innerHTML='';
+  positions.forEach((pos,i)=>{
+    const a=anime[i%anime.length];
+    const card=document.createElement('div');
+    card.className='float-card';
+    card.style.cssText=`left:${pos.left};top:${pos.top};transform:rotate(${pos.rot}) scale(${pos.scale});opacity:${pos.opacity};animation:flt${i%3} ${6+i*0.7}s ease-in-out infinite`;
+    card.innerHTML=`<img src="${a.image_url}" alt="${a.name}" onerror="this.src='https://placehold.co/200x290/141428/00fff5?text=?'">
+    <div class="card-overlay"><div class="card-name">${a.name}</div><div class="card-rating">★ ${a.rating}</div></div>`;
+    card.addEventListener('mouseenter',()=>cursorRing.classList.add('hover'));
+    card.addEventListener('mouseleave',()=>cursorRing.classList.remove('hover'));
+    stage.appendChild(card);
+  });
+}
+ 
+async function loadFeatured(){
+  try{
+    const r=await fetch(`${API}/featured`);
+    const data=await r.json();
+    featuredAnime=data.anime;
+    createFloatingCards(featuredAnime);
+    buildTicker(featuredAnime);
+    setInterval(()=>{
+      const sh=[...featuredAnime].sort(()=>Math.random()-0.5);
+      createFloatingCards(sh);
+    },8000);
+  }catch(e){
+    const ph=Array(10).fill(0).map((_,i)=>({
+      name:['Naruto','Death Note','AoT','SAO','Bleach','One Piece','FMA','Tokyo Ghoul','Code Geass','HxH'][i],
+      rating:(7+Math.random()*2).toFixed(1),
+      image_url:`https://placehold.co/200x290/141428/00fff5?text=${['Naruto','Death Note','AoT','SAO','Bleach','One Piece','FMA','Tokyo Ghoul','Code Geass','HxH'][i]}`
+    }));
+    createFloatingCards(ph);buildTicker(ph);
+  }
+}
+ 
+function buildTicker(anime){
+  const t=document.getElementById('ticker');
+  const items=[...anime,...anime];
+  t.innerHTML=items.map(a=>`<div class="ticker-item"><span>★ ${a.rating}</span> ${a.name.toUpperCase()} — ${a.genre.split(',')[0]}</div>`).join('');
+}
+ 
+// ── ONBOARDING ───────────────────────────────
+function openOnboarding(){document.getElementById('modalOverlay').classList.add('active');loadGenres();updateProgress(1);}
+function closeOnboarding(){document.getElementById('modalOverlay').classList.remove('active');}
+function updateProgress(step){
+  const bar=document.getElementById('progressBar');
+  bar.innerHTML=[1,2,3].map(i=>`<div class="progress-dot ${i<step?'done':i===step?'active':''}"></div>`).join('');
+}
+async function loadGenres(){
+  try{
+    const r=await fetch(`${API}/genres`);
+    const data=await r.json();
+    document.getElementById('genreGrid').innerHTML=data.genres.map(g=>
+      `<button class="genre-chip" onclick="toggleGenre(this,'${g}')">${g}</button>`
+    ).join('');
+  }catch(e){}
+}
+function toggleGenre(el,genre){
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected'))selectedGenres.push(genre);
+  else selectedGenres=selectedGenres.filter(g=>g!==genre);
+  document.getElementById('genreCount').textContent=`${selectedGenres.length} selected`;
+}
+async function goStep2(){
+  if(selectedGenres.length<3){alert('Please select at least 3 genres!');return;}
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  updateProgress(2);await loadAnimeForPicker();
+}
+async function loadAnimeForPicker(){
+  const grid=document.getElementById('animePickerGrid');
+  grid.innerHTML='<div style="color:var(--accent);grid-column:1/-1;text-align:center;padding:2rem;letter-spacing:0.3em;font-size:0.8rem">// LOADING...</div>';
+  try{
+    const r=await fetch(`${API}/popular/${encodeURIComponent(selectedGenres[0])}?limit=18`);
+    const data=await r.json();
+    grid.innerHTML=data.anime.map(a=>`
+      <div class="picker-card" onclick="toggleAnime(this,${a.anime_id})" data-id="${a.anime_id}">
+        <img src="${a.image_url}" alt="${a.name}" onerror="this.src='https://placehold.co/128x168/141428/00fff5?text=?'">
+        <div class="picker-name">${a.name}</div>
+        <div class="rating-overlay">
+          <div class="picker-label">Rate it</div>
+          <div class="star-row">${[1,2,3,4,5].map(s=>`<div class="star" onclick="rateStar(event,${a.anime_id},${s})">★</div>`).join('')}</div>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){grid.innerHTML='<div style="color:var(--accent);grid-column:1/-1;text-align:center">Could not load anime.</div>';}
+}
+function toggleAnime(el,id){
+  el.classList.toggle('selected');
+  if(!el.classList.contains('selected'))delete ratedAnime[id];
+  else{ratedAnime[id]=ratedAnime[id]||3;updateStars(id,ratedAnime[id]);}
+  document.getElementById('animeCount').textContent=`${Object.keys(ratedAnime).length} rated`;
+}
+function rateStar(e,id,rating){
+  e.stopPropagation();ratedAnime[id]=rating;updateStars(id,rating);
+  document.getElementById('animeCount').textContent=`${Object.keys(ratedAnime).length} rated`;
+}
+function updateStars(id,rating){
+  const card=document.querySelector(`.picker-card[data-id="${id}"]`);
+  if(!card)return;
+  card.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<rating));
+}
+function goStep1(){
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+  updateProgress(1);
+}
+async function goStep3(){
+  if(Object.keys(ratedAnime).length<3){alert('Please rate at least 3 anime!');return;}
+  try{
+    const payload={genres:selectedGenres,anime_ratings:Object.entries(ratedAnime).map(([id,r])=>({anime_id:parseInt(id),rating:r*2}))};
+    const resp=await fetch(`${API}/onboarding`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await resp.json();
+    newUserIdVal=data.user_id;
+    document.getElementById('newUserId').textContent=newUserIdVal;
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step3').classList.add('active');
+    updateProgress(3);
+  }catch(e){alert('Error creating profile. Check API connection.');}
+}
+function copyUserId(){
+  navigator.clipboard.writeText(String(newUserIdVal));
+  const btn=document.querySelector('.copy-btn');
+  btn.textContent='✓ Copied!';
+  setTimeout(()=>btn.textContent='⎘ Copy ID',2000);
+}
+function useNewUser(){
+  closeOnboarding();
+  document.getElementById('userInput').value=newUserIdVal;
+  document.querySelector('.search-section').scrollIntoView({behavior:'smooth'});
+  setTimeout(getRecommendations,800);
+}
+ 
+// ── RECOMMENDATIONS ──────────────────────────
+async function getRecommendations(){
+  const uid=document.getElementById('userInput').value.trim();
+  if(!uid)return;
+  const loading=document.getElementById('loading');
+  const error=document.getElementById('error');
+  const grid=document.getElementById('resultsGrid');
+  loading.classList.add('active');error.classList.remove('active');grid.innerHTML='';
+  try{
+    const r=await fetch(`${API}/recommend/${uid}`);
+    const data=await r.json();
+    loading.classList.remove('active');
+    if(data.error){error.textContent=`⚠ ${data.error}`;error.classList.add('active');return;}
+    grid.innerHTML=data.top3.map(anime=>`
+      <div class="result-card">
+        ${anime.image_url?`<img class="result-img" src="${anime.image_url}" alt="${anime.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'' }
+        <div class="result-img-placeholder" style="display:${anime.image_url?'none':'flex'}">🎌</div>
+        <div class="result-body">
+          <div class="result-rank"># Rank ${anime.rank} — For You</div>
+          <div class="result-name">${anime.name}</div>
+          <div class="result-genre">${anime.genre}</div>
+          ${anime.description&&anime.description!=='No description available.'?`<div class="result-desc">${anime.description}</div>`:''}
+          <div class="result-meta">
+            <div class="result-rating">★ ${anime.rating}</div>
+            <div class="result-score">Match ${anime.score.toFixed(3)}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    // add hover listeners to new cards
+    grid.querySelectorAll('.result-card').forEach(el=>{
+      el.addEventListener('mouseenter',()=>cursorRing.classList.add('hover'));
+      el.addEventListener('mouseleave',()=>cursorRing.classList.remove('hover'));
+    });
+    grid.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){
+    loading.classList.remove('active');
+    error.textContent='⚠ Could not connect to API. Make sure the server is running.';
+    error.classList.add('active');
+  }
+}
+document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter')getRecommendations();});
+ 
+loadFeatured();
+</script>
+</body>
+</html>
