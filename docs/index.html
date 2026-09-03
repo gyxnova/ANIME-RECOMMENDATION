@@ -298,8 +298,8 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2.5rem;displ
 <div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
  
 <script>
-const API = window.location.origin;
-const IS_STATIC_HOST = window.location.protocol === 'file:' || window.location.hostname.endsWith('.github.io');
+const API = 'https://anime-recommendation-ypi9.onrender.com';
+const IS_STATIC_HOST = window.location.protocol === 'file:';
 const STATIC_GENRES = ['Action','Adventure','Comedy','Drama','Fantasy','Romance','Sci-Fi','Mystery'];
 const STATIC_DEMO_ANIME = [
   {anime_id:20,name:'Naruto',genre:'Action, Adventure',rating:8.3,image_url:'https://placehold.co/200x290/141428/00fff5?text=Naruto'},

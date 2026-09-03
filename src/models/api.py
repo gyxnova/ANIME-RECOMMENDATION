@@ -4,6 +4,7 @@ import joblib
 from pathlib import Path
 import pandas as pd
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -16,6 +17,17 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from configs.config import MODELS_DIR,DATA_FEATURES,DATA_PROC
 
 app = FastAPI(title="Anime top3 Recommender")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://gyxnova.github.io",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 # serve static files
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
