@@ -7,6 +7,7 @@ pyarrow
 duckdb
 scikit-learn
 scipy
+implicit
 joblib
 fastapi
 uvicorn
